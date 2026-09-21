@@ -1,0 +1,9 @@
+"use client";
+import {useEffect,useState} from "react";
+import {supabase} from "../lib/supabase";
+export default function HomeClient(){
+ const[mode,setMode]=useState("login"),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[message,setMessage]=useState(""),[loading,setLoading]=useState(false);
+ useEffect(()=>{supabase.auth.getSession().then(({data})=>{if(data.session)location.href="/dashboard"})},[]);
+ async function auth(e){e.preventDefault();setLoading(true);setMessage("");let r=mode==="register"?await supabase.auth.signUp({email,password}):await supabase.auth.signInWithPassword({email,password});if(r.error)setMessage(r.error.message);else if(mode==="register")setMessage("Đăng ký thành công. Kiểm tra email nếu cần xác nhận.");else location.href="/dashboard";setLoading(false)}
+ return <main className="page"><section className="hero"><div className="logo">XENOVA <span>PLAY</span></div><p>Hệ thống quản lý tài khoản & KEY</p></section><section className="auth-card"><div className="tabs"><button className={mode==="login"?"active":""} onClick={()=>setMode("login")}>Đăng nhập</button><button className={mode==="register"?"active":""} onClick={()=>setMode("register")}>Đăng ký</button></div><form onSubmit={auth}><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Nhập email" required/><label>Mật khẩu</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự" minLength="6" required/><button className="primary" disabled={loading}>{loading?"Đang xử lý...":mode==="login"?"ĐĂNG NHẬP":"TẠO TÀI KHOẢN"}</button></form>{message&&<div className="message">{message}</div>}</section><section className="features"><div><b>🔑 KEY</b><span>Quản lý key cá nhân</span></div><div><b>🛒 SẢN PHẨM</b><span>Xem các gói XENOVA</span></div><div><b>👤 TÀI KHOẢN</b><span>Dashboard riêng cho từng user</span></div></section></main>
+}
