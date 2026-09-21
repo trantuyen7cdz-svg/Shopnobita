@@ -1,0 +1,10 @@
+"use client";
+import {useEffect,useState} from "react";
+import {supabase} from "../../lib/supabase";
+export default function DashboardClient(){
+ const[user,setUser]=useState(null),[products,setProducts]=useState([]),[keys,setKeys]=useState([]),[orders,setOrders]=useState([]),[loading,setLoading]=useState(true);
+ useEffect(()=>{(async()=>{const{data}=await supabase.auth.getSession();if(!data.session){location.href="/";return}setUser(data.session.user);const[p,k,o]=await Promise.all([supabase.from("products").select("*").eq("active",true).order("created_at",{ascending:false}),supabase.from("keys").select("*").eq("user_id",data.session.user.id).order("created_at",{ascending:false}),supabase.from("orders").select("*").eq("user_id",data.session.user.id).order("created_at",{ascending:false})]);setProducts(p.data||[]);setKeys(k.data||[]);setOrders(o.data||[]);setLoading(false)})()},[]);
+ async function logout(){await supabase.auth.signOut();location.href="/"}
+ if(loading)return <main className="page"><div className="loading">Đang tải XENOVA PLAY...</div></main>;
+ return <main className="page"><header className="dash-header"><div className="logo">XENOVA <span>PLAY</span></div><button className="logout" onClick={logout}>Đăng xuất</button></header><section className="welcome"><small>TÀI KHOẢN</small><h1>Xin chào 👋</h1><p>{user?.email}</p></section><section className="stats"><div><b>{keys.length}</b><span>KEY</span></div><div><b>{orders.length}</b><span>ĐƠN HÀNG</span></div><div><b>{products.length}</b><span>SẢN PHẨM</span></div></section><section className="panel"><h2>KEY CỦA TÔI</h2>{keys.length===0?<p className="muted">Bạn chưa có KEY.</p>:keys.map(k=><div className="row" key={k.id}><strong>{k.key_code}</strong><span>{k.status}</span></div>)}</section><section className="panel"><h2>SẢN PHẨM</h2>{products.length===0?<p className="muted">Chưa có sản phẩm. Có thể thêm sau trong Supabase.</p>:products.map(p=><div className="product" key={p.id}><div><strong>{p.name}</strong><p>{p.description||"Gói XENOVA PLAY"}</p></div><b>{Number(p.price).toLocaleString("vi-VN")}đ</b></div>)}</section></main>
+}
